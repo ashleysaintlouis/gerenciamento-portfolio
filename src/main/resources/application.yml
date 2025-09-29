@@ -1,0 +1,40 @@
+server:
+  port: ${PORT}
+
+#jwt:
+#  secret: ${JWT_SECRET}
+#  expiration: ${JWT_EXPIRATION}
+
+spring:
+  application:
+    name:gerenciamentoportfolio
+
+  config:
+    import: "optional:classpath:.env"
+
+
+  datasource:
+    url: ${DATASOURCE_URL:NOT_FOUND}
+    username: ${USER}
+    password: ${PASSWORD}
+    driver-class-name: ${DRIVER}
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    generate-ddl: true
+
+  logging:
+    level:
+      root: info
+      io.github.ashleysaintlouis.gerenciamentoportfolio: DEBUG
+      org.springframework.web: debug
+      org.hibernate: error
+      org.springframework.security: trace
+      org.springframework.web.servlet.DispatcherServlet: trace
+      org.springframework.core.env: DEBUG
+      org.springframework.boot.context.config: DEBUG
+    file:
+      name: logs/minha-aplicacao.log
