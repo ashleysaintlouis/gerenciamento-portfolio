@@ -15,9 +15,22 @@ public class ProjetoService {
     private ProjetoMapper projetoMapper;
 
     public ProjetoDto cadastroProjeto(ProjetoDto projetoDto) {
-        Projeto novoProjeto = projetoMapper.toProjeto(projetoDto);
+        Projeto novoProjeto = projetoMapper.toProjetoEntity(projetoDto);
+        calcularPrazo(novoProjeto);
         projetoRepository.save(novoProjeto);
+        System.out.println(novoProjeto.toString());
         return projetoMapper.toProjetoDto(novoProjeto);
     }
 
+    public int calcularPrazo(Projeto projeto) {
+        int mes = projeto.getDataFim().compareTo(projeto.getDataInicio());
+        System.out.println("Mes: " + mes);
+
+        return mes;
+    }
+
+    public boolean riscoBaixo(ProjetoDto projetoDto) {
+        Projeto projeto = projetoMapper.toProjetoEntity(projetoDto);
+        return true;
+    }
 }

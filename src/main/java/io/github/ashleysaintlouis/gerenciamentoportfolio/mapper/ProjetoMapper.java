@@ -6,6 +6,6 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring", uses = {StatusProjetoMapper.class})
 public interface ProjetoMapper {
-    Projeto toProjeto(ProjetoDto projetoDto);
+    Projeto toProjetoEntity(ProjetoDto projetoDto);
     ProjetoDto toProjetoDto(Projeto projeto);
 }

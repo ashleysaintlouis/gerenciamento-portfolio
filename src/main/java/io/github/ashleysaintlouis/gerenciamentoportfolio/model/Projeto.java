@@ -33,5 +33,5 @@ public class Projeto {
     )
     private Membro membro;
     @Column(nullable = false)
-    private StatutProjeto statut;
+    private StatutProjeto status;
 }
