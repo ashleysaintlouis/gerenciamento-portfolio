@@ -12,14 +12,11 @@ public interface MembroMapper {
 
     MembroMapper INSTANCE = Mappers.getMapper(MembroMapper.class);
 
-    // DTO → Entity
     Membro toMembroEntity(MembroDto dto);
 
-    // Entity → DTO
     MembroResponseDto toMembroResponseDto(Membro membro);
     Membro toMembroResponseEntity(MembroResponseDto dto);
 
-    // Para uso manual
     default MembroDto toMembroDto(Long id, String nome, String cargo) {
         return new MembroDto(nome, cargo);
     }

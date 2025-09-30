@@ -1,5 +1,6 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -33,5 +34,6 @@ public class Projeto {
     private StatusProjeto status = StatusProjeto.EM_ANALISE;
 
     @ManyToMany
+    @JsonIgnoreProperties("projetos")
     private List<Membro> membros = new ArrayList<>();
 }

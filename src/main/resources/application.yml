@@ -1,16 +1,18 @@
 server:
   port: ${PORT}
 
-#jwt:
-#  secret: ${JWT_SECRET}
-#  expiration: ${JWT_EXPIRATION}
-
 spring:
   application:
     name:gerenciamentoportfolio
 
   config:
     import: "optional:classpath:.env"
+
+  jackson:
+    serialization:
+      WRITE_ENUMS_USING_TO_STRING: true
+    deserialization:
+      READ_ENUMS_USING_TO_STRING: true
 
 
   datasource:
