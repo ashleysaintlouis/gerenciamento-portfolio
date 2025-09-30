@@ -5,6 +5,8 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -20,18 +22,16 @@ public class Projeto {
     private LocalDate dataFim;
     @Column(nullable = false)
     private LocalDate dataPrevisto;
-    @Column(nullable = false)
+    @Column(nullable = false, scale = 2)
     private BigDecimal orcamento;
     @Column(nullable = true)
     private String descricao;
-
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "membros_projeto",
-            joinColumns = @JoinColumn(name = "id_membro"),
-            inverseJoinColumns = @JoinColumn(name = "id_projeto")
-    )
-    private Membro membro;
+    @Column(unique = true)
+    private Long responsavel;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatutProjeto status;
+    private StatusProjeto status = StatusProjeto.EM_ANALISE;
+
+    @ManyToMany
+    private List<Membro> membros = new ArrayList<>();
 }

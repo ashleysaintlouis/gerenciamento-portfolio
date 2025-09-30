@@ -14,6 +14,7 @@ public class Membro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Long idExterno;
     @Column(nullable = false)
     private String nome;
     @Column(nullable = false)

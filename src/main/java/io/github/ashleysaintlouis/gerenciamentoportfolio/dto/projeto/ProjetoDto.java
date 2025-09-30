@@ -1,6 +1,8 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto;
 
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroDto;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroResponseDto;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.model.StatusProjeto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,6 +13,8 @@ public record ProjetoDto(
         LocalDate dataPrevisto,
         BigDecimal orcamento,
         String descricao,
-        MembroDto membro,
-        StatusDto status
-) {}
+        Long responsavel,
+        StatusProjeto status
+) {
+
+}
