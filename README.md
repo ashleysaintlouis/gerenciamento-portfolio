@@ -4,6 +4,8 @@ Avaliação - Java 2.0
 
 💼 Desafio Técnico – Java 
 
+Link API Swagger: http://localhost:8083/swagger-ui/index.html
+
 🧩 Contexto:
 
 Você deve desenvolver um sistema para gerenciar o portfólio de projetos de uma empresa. Esse sistema deverá permitir o acompanhamento completo do ciclo de vida de cada projeto, desde a análise de viabilidade até a finalização, incluindo gerenciamento de equipe, orçamento e risco.
@@ -56,3 +58,4 @@ Você deve desenvolver um sistema para gerenciar o portfólio de projetos de uma
 * Não deverá constar em nenhum lugar do projeto (estruturas de pastas, nomes de arquivos, código fonte, etc.) a palavra “Desbravador”.
 
 Desejo boa sorte!
+
