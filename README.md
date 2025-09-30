@@ -55,7 +55,7 @@ Você deve desenvolver um sistema para gerenciar o portfólio de projetos de uma
 
 🚀 Entrega
 * O projeto deverá ser enviado por e-mail contendo o link para o repositório em sua conta pessoal no GitHub.
-* Não deverá constar em nenhum lugar do projeto (estruturas de pastas, nomes de arquivos, código fonte, etc.) a palavra “Desbravador”.
 
 Desejo boa sorte!
+
 
