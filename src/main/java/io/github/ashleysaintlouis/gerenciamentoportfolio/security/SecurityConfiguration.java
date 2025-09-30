@@ -32,7 +32,9 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/api/projetos/**",
+                                "api-external"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

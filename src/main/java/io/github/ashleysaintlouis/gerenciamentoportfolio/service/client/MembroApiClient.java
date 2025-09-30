@@ -1,22 +1,30 @@
-package io.github.ashleysaintlouis.gerenciamentoportfolio.client;
+package io.github.ashleysaintlouis.gerenciamentoportfolio.service.client;
 
-import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroDto;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.configuration.RestTemplateConfig;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.ListaMembroDto;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroRequestDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Membro;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
-// Mock que simula a chamada a uma API REST externa
+
 @Component
 public class MembroApiClient {
 
     private final Map<Long, Membro> membrosExternos = new ConcurrentHashMap<>();
+    private final Map<Long, List<Membro>> membrosExternosLista = new ConcurrentHashMap<>();
+
     private final AtomicLong idGenerator = new AtomicLong(1);
 
-    public Membro criarMembro(MembroDto dto) {
-        // Simula uma chamada POST para um serviço externo
+    public Membro criarMembro(MembroRequestDto dto) {
         System.out.println("MOCK API: Criando membro externo: " + dto.nome());
         Membro novoMembro = new Membro();
         long id = idGenerator.getAndIncrement();
@@ -27,8 +35,26 @@ public class MembroApiClient {
         return novoMembro;
     }
 
+    public List<Membro> criarListaMembro(ListaMembroDto dto) {
+        System.out.println("MOCK API: Criando lista de membros externos: " + dto.membros());
+
+        List<Membro> novosMembros = dto.membros().stream().map(membroDto -> {
+            Membro membro = new Membro();
+            long id = idGenerator.getAndIncrement();
+            membro.setIdExterno(id);
+            membro.setNome(membroDto.nome());
+            membro.setCargo(membroDto.cargo());
+            membrosExternos.put(id, membro);
+            return membro;
+        }).collect(Collectors.toList());
+
+        long listaId = idGenerator.getAndIncrement();
+        membrosExternosLista.put(listaId, novosMembros);
+
+        return novosMembros;
+    }
+
     public Membro buscarMembroPorId(Long id) {
-        // Simula uma chamada GET para um serviço externo
         System.out.println("MOCK API: Buscando membro externo por ID: " + id);
         return membrosExternos.get(id);
     }

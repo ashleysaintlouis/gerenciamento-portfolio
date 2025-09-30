@@ -1,8 +1,11 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.service;
 
+import io.github.ashleysaintlouis.gerenciamentoportfolio.controller.MembroExternalController;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroRequestDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto.*;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.BusinessException;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.NotFoundException;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.mapper.MembroMapper;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.mapper.ProjetoMapper;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Membro;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Projeto;
@@ -13,6 +16,7 @@ import io.github.ashleysaintlouis.gerenciamentoportfolio.repository.ProjetoSpeci
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,49 +37,64 @@ public class ProjetoService {
     private ProjetoMapper projetoMapper;
     @Autowired
     private MembroService membroService;
+    @Autowired
+    private MembroMapper membroMapper;
 
-    // CRUD - Criar
-    public ProjetoResponseDto salvarProjeto(ProjetoDto dto) {
-        Membro responsavel = membroService.buscarMembroEntity(dto.responsavel());
+    @Autowired
+    private MembroExternalController membroExternalController;
+
+    public ProjetoResponseDto salvarProjeto(ProjetoRequestDto dto) {
+        ResponseEntity<?> membrorequestExternal = membroExternalController.getAllMembro();
+        System.out.println("membrorequestExternal: " + membrorequestExternal);
+
+        Membro responsavel = membroService.buscarMembroEntity(dto.idResponsavel().id());
         Projeto projeto = projetoMapper.toProjetoEntity(dto);
-        projeto.setResponsavel(Long.valueOf(responsavel.getId()));
+        long projetosAtivos = projetoRepository.countByMembrosIdAndStatusNotIn(dto.idResponsavel().id(), List.of(StatusProjeto.ENCERRADO, StatusProjeto.CANCELADO));
+        if (projetosAtivos >= 3) {
+            throw new BusinessException("Esse membro já faz já está alocado em 3 projetos ativos.");
+        }
+
+        projeto.setIdResponsavel(responsavel);
         projeto.setStatus(StatusProjeto.EM_ANALISE);
+        System.out.println("Projeto para o membro antes de Salvar: " + projeto);
         Projeto salvo = projetoRepository.save(projeto);
-        return criarResponseDto(salvo);
+        ProjetoResponseDto responseDto = criarResponseDto(salvo);
+        System.out.println("Salvo com sucesso" + responseDto);
+        return responseDto;
     }
 
-    // CRUD - Atualizar
-    public ProjetoResponseDto atualizarProjeto(Long id, ProjetoDto dto) {
+    public ProjetoResponseDto atualizarProjeto(Long id, ProjetoRequestDto dto) {
         Projeto projeto = buscarProjetoPorId(id);
-        Membro responsavel = membroService.buscarMembroEntity(dto.responsavel());
+        Membro responsavel = membroService.buscarMembroEntity(dto.idResponsavel().id());
 
         projeto.setNome(dto.nome());
         projeto.setDescricao(dto.descricao());
         projeto.setDataInicio(dto.dataInicio());
         projeto.setDataPrevisto(dto.dataPrevisto());
         projeto.setOrcamento(dto.orcamento());
-        projeto.setResponsavel(Long.valueOf(String.valueOf(responsavel)));
+        projeto.setIdResponsavel(responsavel);
 
         Projeto salvo = projetoRepository.save(projeto);
+        System.out.print("Projeto atualizado com sucesso! " + salvo);
         return criarResponseDto(salvo);
     }
 
-    // CRUD - Buscar por ID
     public Projeto buscarProjetoPorId(Long id) {
-        return projetoRepository.findById(id)
+        System.out.println("Buscando projeto por id: " + id);
+        Projeto idprojeto = projetoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Projeto não encontrado: " + id));
+        System.out.println("Projeto após verificar" + idprojeto);
+        return idprojeto;
     }
 
     public ProjetoResponseDto buscarProjetoDtoPorId(Long id) {
         return criarResponseDto(buscarProjetoPorId(id));
     }
 
-    // CRUD - Listar com Filtro e Paginação
     public Page<ProjetoResponseDto> listarTodos(ProjetoFiltroDto filtro, Pageable pageable) {
         return projetoRepository.findAll(new ProjetoSpecification(filtro), pageable).map(this::criarResponseDto);
     }
 
-    // CRUD - Excluir
     public void excluirProjeto(Long id) {
         Projeto projeto = buscarProjetoPorId(id);
         if (List.of(StatusProjeto.INICIADO, StatusProjeto.EM_ANDAMENTO, StatusProjeto.ENCERRADO).contains(projeto.getStatus())) {
@@ -84,7 +103,6 @@ public class ProjetoService {
         projetoRepository.delete(projeto);
     }
 
-    // REGRAS DE NEGÓCIO
     public void adicionarMembroAoProjeto(Long membroId, Long projetoId) {
         Projeto projeto = buscarProjetoPorId(projetoId);
         Membro membro = membroService.eFuncionario(membroId);

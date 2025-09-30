@@ -1,6 +1,5 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.controller;
 
-import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto.*;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.service.ProjetoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +22,7 @@ public class ProjetoController {
 
     @PostMapping
     @Operation(summary = "Cria um novo projeto")
-    public ResponseEntity<ProjetoResponseDto> criarProjeto(@RequestBody @Valid ProjetoDto dto) {
+    public ResponseEntity<ProjetoResponseDto> criarProjeto(@RequestBody @Valid ProjetoRequestDto dto) {
         ProjetoResponseDto novoProjeto = projetoService.salvarProjeto(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoProjeto);
     }
@@ -36,6 +35,7 @@ public class ProjetoController {
             })
     public ResponseEntity<ProjetoResponseDto> buscarProjetoPorId(@PathVariable Long id) {
         ProjetoResponseDto dto = projetoService.buscarProjetoDtoPorId(id);
+        System.out.println("Projeto encontrado: " + dto.id());
         return ResponseEntity.ok(dto);
     }
 
@@ -52,7 +52,7 @@ public class ProjetoController {
     @Operation(summary = "Atualiza um projeto existente")
     public ResponseEntity<ProjetoResponseDto> atualizarProjeto(
             @PathVariable Long id,
-            @RequestBody @Valid ProjetoDto dto) {
+            @RequestBody @Valid ProjetoRequestDto dto) {
         ProjetoResponseDto atualizado = projetoService.atualizarProjeto(id, dto);
         return ResponseEntity.ok(atualizado);
     }

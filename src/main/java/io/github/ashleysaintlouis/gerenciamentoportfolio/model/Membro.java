@@ -13,6 +13,7 @@ import lombok.ToString;
 public class Membro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_membro")
     private Long id;
     private Long idExterno;
     @Column(nullable = false)

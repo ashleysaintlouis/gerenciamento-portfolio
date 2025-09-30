@@ -1,7 +1,9 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.service;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto.AtualizarStatusDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.BusinessException;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.mapper.MembroMapper;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Membro;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Projeto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.StatusProjeto;
@@ -14,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.Optional;
+
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -24,6 +28,8 @@ class ProjetoServiceTest {
     private ProjetoRepository projetoRepository;
     @Mock
     private MembroService membroService;
+    @Mock
+    private MembroMapper membroMapper;
     @InjectMocks
     private ProjetoService projetoService;
 
@@ -87,4 +93,5 @@ class ProjetoServiceTest {
 
         assertThrows(BusinessException.class, () -> projetoService.adicionarMembroAoProjeto(1L, 1L));
     }
+
 }

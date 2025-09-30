@@ -1,5 +1,4 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro;
 
-public record MembroDto(String nome, String cargo) {
-
+public record MembroDto(Long id, String nome, Long idExterno, String cargo) {
 }

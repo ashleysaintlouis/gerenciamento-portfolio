@@ -27,8 +27,11 @@ public class Projeto {
     private BigDecimal orcamento;
     @Column(nullable = true)
     private String descricao;
-    @Column(unique = true)
-    private Long responsavel;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "id_membro")
+    private Membro idResponsavel;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusProjeto status = StatusProjeto.EM_ANALISE;
