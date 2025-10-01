@@ -7,5 +7,7 @@ import java.util.Optional;
 
 public interface MembroRepository extends JpaRepository<Membro,Long> {
     Optional<Membro> findByNome(String nome);
+    Optional<Membro> findByIdExterno(Long idExterno);
+
 
 }

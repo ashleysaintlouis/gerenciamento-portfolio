@@ -1,11 +1,12 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.controller.MembroExternalController;
-import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroRequestDto;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroExternalDto;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroResponseDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto.*;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.BusinessException;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.NotFoundException;
-import io.github.ashleysaintlouis.gerenciamentoportfolio.mapper.MembroMapper;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.mapper.ProjetoMapper;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Membro;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Projeto;
@@ -16,7 +17,6 @@ import io.github.ashleysaintlouis.gerenciamentoportfolio.repository.ProjetoSpeci
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,20 +36,23 @@ public class ProjetoService {
     @Autowired
     private ProjetoMapper projetoMapper;
     @Autowired
-    private MembroService membroService;
-    @Autowired
-    private MembroMapper membroMapper;
-
-    @Autowired
     private MembroExternalController membroExternalController;
+    @Autowired
+    private MembroService membroService;
 
-    public ProjetoResponseDto salvarProjeto(ProjetoRequestDto dto) {
-        ResponseEntity<?> membrorequestExternal = membroExternalController.getAllMembro();
-        System.out.println("membrorequestExternal: " + membrorequestExternal);
+    public ProjetoResponseDto salvarProjeto(ProjetoRequestDto dto) throws JsonProcessingException {
+        String idStr = String.valueOf(dto.idResponsavel());
 
-        Membro responsavel = membroService.buscarMembroEntity(dto.idResponsavel().id());
+        MembroExternalDto membrorequestExternal = membroExternalController.getMembroById(idStr).getBody();
+        System.out.println("Membro controller: " + membrorequestExternal);
+
+        if (membrorequestExternal == null) {
+            throw new NotFoundException("Membro não encontrado: " + membrorequestExternal);
+        }
+        MembroResponseDto persistirMembro = membroService.criarMembro(membrorequestExternal);
+        Membro responsavel = membroService.buscarMembroEntity(persistirMembro.id());
         Projeto projeto = projetoMapper.toProjetoEntity(dto);
-        long projetosAtivos = projetoRepository.countByMembrosIdAndStatusNotIn(dto.idResponsavel().id(), List.of(StatusProjeto.ENCERRADO, StatusProjeto.CANCELADO));
+        long projetosAtivos = projetoRepository.countByMembrosIdAndStatusNotIn(dto.idResponsavel(), List.of(StatusProjeto.ENCERRADO, StatusProjeto.CANCELADO));
         if (projetosAtivos >= 3) {
             throw new BusinessException("Esse membro já faz já está alocado em 3 projetos ativos.");
         }
@@ -65,7 +68,7 @@ public class ProjetoService {
 
     public ProjetoResponseDto atualizarProjeto(Long id, ProjetoRequestDto dto) {
         Projeto projeto = buscarProjetoPorId(id);
-        Membro responsavel = membroService.buscarMembroEntity(dto.idResponsavel().id());
+        Membro responsavel = membroService.buscarMembroEntity(dto.idResponsavel());
 
         projeto.setNome(dto.nome());
         projeto.setDescricao(dto.descricao());

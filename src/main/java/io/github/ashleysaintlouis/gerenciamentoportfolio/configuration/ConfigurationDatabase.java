@@ -1,4 +1,4 @@
-package io.github.ashleysaintlouis.gerenciamentoportfolio.configuration.db;
+package io.github.ashleysaintlouis.gerenciamentoportfolio.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

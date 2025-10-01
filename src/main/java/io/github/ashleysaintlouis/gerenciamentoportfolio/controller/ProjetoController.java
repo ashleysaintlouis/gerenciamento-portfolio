@@ -1,5 +1,6 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto.*;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.service.ProjetoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,9 +23,9 @@ public class ProjetoController {
 
     @PostMapping
     @Operation(summary = "Cria um novo projeto")
-    public ResponseEntity<ProjetoResponseDto> criarProjeto(@RequestBody @Valid ProjetoRequestDto dto) {
-        ProjetoResponseDto novoProjeto = projetoService.salvarProjeto(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(novoProjeto);
+    public ResponseEntity<ProjetoResponseDto> criarProjeto(@RequestBody @Valid ProjetoRequestDto dto)
+            throws JsonProcessingException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(projetoService.salvarProjeto(dto));
     }
 
     @GetMapping("/{id}")
@@ -34,9 +35,7 @@ public class ProjetoController {
                     @ApiResponse(responseCode = "404", description = "Projeto não encontrado")
             })
     public ResponseEntity<ProjetoResponseDto> buscarProjetoPorId(@PathVariable Long id) {
-        ProjetoResponseDto dto = projetoService.buscarProjetoDtoPorId(id);
-        System.out.println("Projeto encontrado: " + dto.id());
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(projetoService.buscarProjetoDtoPorId(id));
     }
 
     @GetMapping
@@ -44,8 +43,7 @@ public class ProjetoController {
     public ResponseEntity<Page<ProjetoResponseDto>> listarProjetos(
             @ParameterObject ProjetoFiltroDto filtro,
             @ParameterObject Pageable pageable) {
-        Page<ProjetoResponseDto> projetos = projetoService.listarTodos(filtro, pageable);
-        return ResponseEntity.ok(projetos);
+        return ResponseEntity.ok(projetoService.listarTodos(filtro, pageable));
     }
 
     @PutMapping("/{id}")
@@ -53,8 +51,7 @@ public class ProjetoController {
     public ResponseEntity<ProjetoResponseDto> atualizarProjeto(
             @PathVariable Long id,
             @RequestBody @Valid ProjetoRequestDto dto) {
-        ProjetoResponseDto atualizado = projetoService.atualizarProjeto(id, dto);
-        return ResponseEntity.ok(atualizado);
+        return ResponseEntity.ok(projetoService.atualizarProjeto(id, dto));
     }
 
     @PatchMapping("/{id}/status")
@@ -85,7 +82,6 @@ public class ProjetoController {
     @GetMapping("/relatorio")
     @Operation(summary = "Gera um relatório resumido do portfólio")
     public ResponseEntity<RelatorioPortfolioDto> gerarRelatorio() {
-        RelatorioPortfolioDto relatorio = projetoService.gerarRelatorioPortfolio();
-        return ResponseEntity.ok(relatorio);
+        return ResponseEntity.ok(projetoService.gerarRelatorioPortfolio());
     }
 }

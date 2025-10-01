@@ -59,7 +59,7 @@ class ProjetoServiceTest {
     @Test
     void testAtualizarStatus_Sucesso_SequenciaCorreta() {
         when(projetoRepository.findById(1L)).thenReturn(Optional.of(projeto));
-        projeto.getMembros().add(membro); // Adiciona membro para permitir início
+        projeto.getMembros().add(membro);
 
         projetoService.atualizarStatusProjeto(1L, new AtualizarStatusDto(StatusProjeto.ANALISE_REALIZADA));
         assertEquals(StatusProjeto.ANALISE_REALIZADA, projeto.getStatus());

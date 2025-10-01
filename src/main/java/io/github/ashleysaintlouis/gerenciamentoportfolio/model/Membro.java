@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Objects;
+
 
 @Getter
 @Setter
@@ -21,4 +23,17 @@ public class Membro {
     @Column(nullable = false)
     private String cargo;
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Membro)) return false;
+        Membro membro = (Membro) o;
+        return Objects.equals(id, membro.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

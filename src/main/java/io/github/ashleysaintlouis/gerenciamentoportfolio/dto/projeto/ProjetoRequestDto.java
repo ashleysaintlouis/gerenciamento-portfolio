@@ -12,7 +12,7 @@ public record ProjetoRequestDto(
         LocalDate dataPrevisto,
         BigDecimal orcamento,
         String descricao,
-        MembroDto idResponsavel,
+        Long idResponsavel,
         StatusProjeto status
 ) {
 

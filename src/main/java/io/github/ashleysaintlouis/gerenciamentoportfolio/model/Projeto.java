@@ -15,28 +15,20 @@ public class Projeto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false, length = 100)
-    private String nome;
-    @Column(nullable = false)
-    private LocalDate dataInicio;
-    @Column(nullable = true)
-    private LocalDate dataFim;
-    @Column(nullable = false)
-    private LocalDate dataPrevisto;
-    @Column(nullable = false, scale = 2)
-    private BigDecimal orcamento;
-    @Column(nullable = true)
-    private String descricao;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "id_membro")
-    private Membro idResponsavel;
+    private String nome;
+    private String descricao;
+    private LocalDate dataInicio;
+    private LocalDate dataPrevisto;
+    private LocalDate dataFim;
+    private BigDecimal orcamento;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatusProjeto status = StatusProjeto.EM_ANALISE;
+    private StatusProjeto status;
+
+    @ManyToOne
+    private Membro idResponsavel;
 
     @ManyToMany
-    @JsonIgnoreProperties("projetos")
     private List<Membro> membros = new ArrayList<>();
 }

@@ -1,7 +1,7 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.service;
 
-import io.github.ashleysaintlouis.gerenciamentoportfolio.service.client.MembroApiClient;
-import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroRequestDto;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroExternalDto;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.service.client.ExternalApiService;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroResponseDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.BusinessException;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.NotFoundException;
@@ -11,6 +11,8 @@ import io.github.ashleysaintlouis.gerenciamentoportfolio.repository.MembroReposi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 
 @Service
 public class MembroService {
@@ -18,18 +20,24 @@ public class MembroService {
     @Autowired
     private MembroRepository membroRepository;
     @Autowired
-    private MembroApiClient membroApiClient;
-    @Autowired
     private MembroMapper membroMapper;
-//    @Autowired
-//    private final String apiExterna = "http://localhost:8083/criar-membro";
+    @Autowired
+    private ExternalApiService externalApiService;
 
-    public MembroResponseDto criarMembro(MembroRequestDto dto) {
-        Membro membroExterno = membroApiClient.criarMembro(dto);
-        System.out.println("Projeto para o membro: " + membroExterno.toString());
-        Membro membroCriado = membroRepository.save(membroExterno);
-        System.out.println("Membro criado: " + membroCriado.toString());
-        return membroMapper.toMembroResponseDto(membroCriado);
+    public MembroResponseDto criarMembro(MembroExternalDto dto) {
+        Optional<Membro> membroExistente = membroRepository.findByIdExterno(dto.id());
+        Membro membro;
+        if (membroExistente.isPresent()) {
+            membro = membroExistente.get();
+        } else {
+            membro = new Membro();
+            membro.setNome(dto.nome());
+            membro.setCargo(dto.cargo());
+            membro.setIdExterno(dto.id());
+            membro = membroRepository.save(membro);
+        }
+        System.out.println("Projeto para o membro: " + membro);
+        return membroMapper.toMembroResponseDto(membro);
     }
 
     public Membro buscarMembroEntity(Long id) {
