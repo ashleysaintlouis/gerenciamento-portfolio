@@ -7,6 +7,7 @@ import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroRespon
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto.*;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.BusinessException;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.NotFoundException;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.mapper.MembroMapper;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.mapper.ProjetoMapper;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Membro;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Projeto;
@@ -14,6 +15,7 @@ import io.github.ashleysaintlouis.gerenciamentoportfolio.model.StatusProjeto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.TipoClassificacao;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.repository.ProjetoRepository;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.repository.ProjetoSpecification;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.service.client.ExternalApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,8 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+
 
 @Service
 @Transactional
@@ -36,49 +37,51 @@ public class ProjetoService {
     @Autowired
     private ProjetoMapper projetoMapper;
     @Autowired
-    private MembroExternalController membroExternalController;
+    private ExternalApiService externalApiService;
     @Autowired
     private MembroService membroService;
+    @Autowired
+    private MembroMapper membroMapper;
 
+    @Transactional
     public ProjetoResponseDto salvarProjeto(ProjetoRequestDto dto) throws JsonProcessingException {
         String idStr = String.valueOf(dto.idResponsavel());
+        MembroExternalDto membrorequestExternal = externalApiService.getMembroId(idStr);
 
-        MembroExternalDto membrorequestExternal = membroExternalController.getMembroById(idStr).getBody();
-        System.out.println("Membro controller: " + membrorequestExternal);
-
-        if (membrorequestExternal == null) {
-            throw new NotFoundException("Membro não encontrado: " + membrorequestExternal);
+        if (membrorequestExternal.id() == null) {
+            throw new NotFoundException("Membro não pode ser nulo : " + membrorequestExternal);
         }
+        if (!membroService.eFuncionario(membrorequestExternal.cargo())){
+            throw new BusinessException("Apenas membros com cargo 'Funcionario' podem ser associados a projetos.");
+        }
+        System.out.println("Passou da verificação eFuncionario!\n");
+
+        if (eAlocadoNoMinimoTresProjeto(membrorequestExternal.id())){
+            throw new BusinessException("O membro já está alocado em 3 projetos ativos.");
+        }
+
         MembroResponseDto persistirMembro = membroService.criarMembro(membrorequestExternal);
-        Membro responsavel = membroService.buscarMembroEntity(persistirMembro.id());
         Projeto projeto = projetoMapper.toProjetoEntity(dto);
-        long projetosAtivos = projetoRepository.countByMembrosIdAndStatusNotIn(dto.idResponsavel(), List.of(StatusProjeto.ENCERRADO, StatusProjeto.CANCELADO));
-        if (projetosAtivos >= 3) {
-            throw new BusinessException("Esse membro já faz já está alocado em 3 projetos ativos.");
-        }
-
-        projeto.setIdResponsavel(responsavel);
+        projeto.setIdResponsavel(membroMapper.toMembro(persistirMembro));
         projeto.setStatus(StatusProjeto.EM_ANALISE);
-        System.out.println("Projeto para o membro antes de Salvar: " + projeto);
+        projeto.getMembros().add(membroMapper.toMembro(persistirMembro));
         Projeto salvo = projetoRepository.save(projeto);
-        ProjetoResponseDto responseDto = criarResponseDto(salvo);
-        System.out.println("Salvo com sucesso" + responseDto);
-        return responseDto;
+        return criarResponseDto(salvo);
     }
 
     public ProjetoResponseDto atualizarProjeto(Long id, ProjetoRequestDto dto) {
+        System.out.println("Atualizando projeto com o membro: \n" + id);
         Projeto projeto = buscarProjetoPorId(id);
         Membro responsavel = membroService.buscarMembroEntity(dto.idResponsavel());
-
         projeto.setNome(dto.nome());
         projeto.setDescricao(dto.descricao());
         projeto.setDataInicio(dto.dataInicio());
         projeto.setDataPrevisto(dto.dataPrevisto());
         projeto.setOrcamento(dto.orcamento());
         projeto.setIdResponsavel(responsavel);
-
+        projeto.setMembros((List<Membro>) responsavel);
         Projeto salvo = projetoRepository.save(projeto);
-        System.out.print("Projeto atualizado com sucesso! " + salvo);
+        System.out.print("Projeto atualizado com sucesso! \n" + salvo);
         return criarResponseDto(salvo);
     }
 
@@ -95,10 +98,12 @@ public class ProjetoService {
     }
 
     public Page<ProjetoResponseDto> listarTodos(ProjetoFiltroDto filtro, Pageable pageable) {
+        System.out.println("Buscando todos projetos\n");
         return projetoRepository.findAll(new ProjetoSpecification(filtro), pageable).map(this::criarResponseDto);
     }
 
     public void excluirProjeto(Long id) {
+        System.out.println("Excluindo projeto por id: \n" + id);
         Projeto projeto = buscarProjetoPorId(id);
         if (List.of(StatusProjeto.INICIADO, StatusProjeto.EM_ANDAMENTO, StatusProjeto.ENCERRADO).contains(projeto.getStatus())) {
             throw new BusinessException("Não é possível excluir projetos com status 'Iniciado', 'Em Andamento' ou 'Encerrado'.");
@@ -106,36 +111,76 @@ public class ProjetoService {
         projetoRepository.delete(projeto);
     }
 
-    public void adicionarMembroAoProjeto(Long membroId, Long projetoId) {
+    public ProjetoResponseDto adicionarMembroAoProjeto(Long membroId, Long projetoId) {
+        System.out.println("Adicionando membro ao projeto: \n" + membroId);
         Projeto projeto = buscarProjetoPorId(projetoId);
-        Membro membro = membroService.eFuncionario(membroId);
+        System.out.println("Adicionando membro ao projeto membro: " + projeto);
+        MembroExternalDto membrorequestExternal = externalApiService.getMembroId(String.valueOf(membroId));
 
-        if (projeto.getMembros().size() >= 10) {
-            throw new BusinessException("Não é possível adicionar mais de 10 membros ao projeto.");
+        if (!verificarRegras(projeto, membrorequestExternal)) {
+            throw new BusinessException("Não atende as regras de negócio.");
         }
-
-        long projetosAtivos = projetoRepository.countByMembrosIdAndStatusNotIn(membroId, List.of(StatusProjeto.ENCERRADO, StatusProjeto.CANCELADO));
-        if (projetosAtivos >= 3) {
-            throw new BusinessException("O membro já está alocado em 3 projetos ativos.");
-        }
-
-        if (projeto.getMembros().contains(membro)) {
-            throw new BusinessException("Membro já associado a este projeto.");
-        }
-
-        projeto.getMembros().add(membro);
-        projetoRepository.save(projeto);
+        MembroResponseDto persistirMembro = membroService.criarMembro(membrorequestExternal);
+        System.out.println("Membro criado com sucesso! \n" + persistirMembro);
+        projeto.getMembros().add(membroMapper.toMembro(persistirMembro));
+        System.out.println("Add membro na lista \n" );
+        Projeto projetoSalvo = projetoRepository.save(projeto);
+        return criarResponseDto(projetoSalvo);
     }
 
-    public void atualizarStatusProjeto(Long id, AtualizarStatusDto dto) {
+    private boolean verificarRegras(Projeto projeto, MembroExternalDto membroExternalDto) {
+        System.out.println("Verificando as regras\n");
+        if(!membroService.eFuncionario(membroExternalDto.cargo())) {
+            throw new BusinessException("Membro " + membroExternalDto.cargo() + " não tem cargo funcionario.");
+        }
+        System.out.println("Passo eFuncionario");
+        if (eJaAlocadoAoProjeto(membroExternalDto, projeto.getId())) {
+            throw new BusinessException("Membro já associado a este projeto.");
+        }
+        System.out.println("Passo eJaAlocadoAoProjeto");
+        if (eAlocadoNoMinimoTresProjeto(membroExternalDto.id())) {
+            throw new BusinessException("O membro já está alocado em 3 projetos ativos.");
+        }
+        System.out.println("Passo eAlocadoNoMinimoTresProjeto");
+        if (verificarQuantidadeDeMembros(projeto.getId())) {
+            throw new BusinessException("Não é possível adicionar mais de 10 membros ao projeto.");
+        }
+        System.out.println("Passo verificarQuantidadeDeMembros");
+        return true;
+    }
+
+    private boolean verificarQuantidadeDeMembros(Long projetoId) {
+        Projeto projeto = buscarProjetoPorId(projetoId);
+        return projeto.getMembros().size() > 10;
+    }
+
+    private boolean eAlocadoNoMinimoTresProjeto(Long membroId) {
+        long projetosAtivos = projetoRepository.countByMembrosIdAndStatusNotIn(membroId, List.of(StatusProjeto.ENCERRADO, StatusProjeto.CANCELADO));
+        return projetosAtivos > 3;
+    }
+
+    private boolean eJaAlocadoAoProjeto(MembroExternalDto membro,  Long projetoId) {
+        Projeto projeto = buscarProjetoPorId(projetoId);
+        MembroExternalDto membroAdd = membroService.buscarMembroExternalSeNaoExisteCriaNovo(membro);
+
+        System.out.println("Passou busco");
+        return projeto.getMembros().contains(membroMapper.toMembro(membroAdd));
+    }
+
+
+    public AtualizarStatusDto atualizarStatusProjeto(Long id, AtualizarStatusDto dto) {
         Projeto projeto = buscarProjetoPorId(id);
         StatusProjeto novoStatus = dto.status();
         StatusProjeto atual = projeto.getStatus();
 
         if (novoStatus == StatusProjeto.CANCELADO) {
+            if (atual == StatusProjeto.ENCERRADO) {
+                throw new BusinessException("Não pode cancelar projeto com status encerrado.");
+            }
             projeto.setStatus(StatusProjeto.CANCELADO);
-            projetoRepository.save(projeto);
-            return;
+            Projeto status = projetoRepository.save(projeto);
+
+            return projetoMapper.toAtualizarStatusDto(status);
         }
 
         if (novoStatus == StatusProjeto.INICIADO && projeto.getMembros().isEmpty()) {
@@ -152,28 +197,9 @@ public class ProjetoService {
             projeto.setDataFim(LocalDate.now());
         }
 
-        projetoRepository.save(projeto);
-    }
 
-    public RelatorioPortfolioDto gerarRelatorioPortfolio() {
-        List<Projeto> projetos = projetoRepository.findAll();
-
-        Map<StatusProjeto, Long> qtdProjetosPorStatus = projetos.stream()
-                .collect(Collectors.groupingBy(Projeto::getStatus, Collectors.counting()));
-
-        Map<StatusProjeto, BigDecimal> totalOrcadoPorStatus = projetos.stream()
-                .collect(Collectors.groupingBy(Projeto::getStatus,
-                        Collectors.reducing(BigDecimal.ZERO, Projeto::getOrcamento, BigDecimal::add)));
-
-        double mediaDuracaoEncerrados = projetos.stream()
-                .filter(p -> p.getStatus() == StatusProjeto.ENCERRADO && p.getDataFim() != null)
-                .mapToLong(p -> ChronoUnit.DAYS.between(p.getDataInicio(), p.getDataFim()))
-                .average()
-                .orElse(0.0);
-
-        long totalMembrosUnicos = projetoRepository.countDistinctMembros();
-
-        return new RelatorioPortfolioDto(qtdProjetosPorStatus, totalOrcadoPorStatus, mediaDuracaoEncerrados, totalMembrosUnicos);
+        Projeto status = projetoRepository.save(projeto);
+        return projetoMapper.toAtualizarStatusDto(status);
     }
 
     private TipoClassificacao calcularRisco(BigDecimal orcamento, LocalDate inicio, LocalDate previsto) {

@@ -9,13 +9,15 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface MembroMapper {
     MembroMapper INSTANCE = Mappers.getMapper(MembroMapper.class);
     @Mapping(target = "id", source = "idExterno")
     MembroExternalDto toMembroExternalDto(Membro membro);
-    Membro toMembro(MembroRequestDto membroRequestDto);
+    Membro toMembro(MembroExternalDto membroExternalDto);
     MembroResponseDto toMembroResponseDto(Membro membro);
-    MembroDto toMembroDto(Membro membro);
-
+    Membro toMembro(MembroResponseDto membroResponseDto);
+    List<MembroResponseDto> toMembro(List<Membro> membros);
 }

@@ -2,11 +2,14 @@ package io.github.ashleysaintlouis.gerenciamentoportfolio.service.client;
 
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroExternalDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.BusinessException;
+import io.github.ashleysaintlouis.gerenciamentoportfolio.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -31,7 +34,17 @@ public class ExternalApiService {
     }
 
     public MembroExternalDto getMembroId(String id) {
-        return restTemplate.getForObject(BASE_URL + "/{id}", MembroExternalDto.class, id);
+        System.out.println("Buscando membro por id no Api Externo " + id);
+
+        try {
+            MembroExternalDto  membroExternalDto = restTemplate.getForObject(BASE_URL + "/{id}", MembroExternalDto.class, id);
+            return membroExternalDto;
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new RecursoNaoEncontradoException("Dado não encontrado na API externa");
+            }
+            throw new RuntimeException("Erro ao consultar API externa", e);
+        }
     }
 
 

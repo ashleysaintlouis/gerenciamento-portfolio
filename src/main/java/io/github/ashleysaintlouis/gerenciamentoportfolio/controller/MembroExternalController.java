@@ -3,6 +3,7 @@ package io.github.ashleysaintlouis.gerenciamentoportfolio.controller;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroExternalDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.service.client.ExternalApiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +25,8 @@ public class MembroExternalController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MembroExternalDto> getMembroById(@PathVariable String id) {
-        return ResponseEntity.ok(externalApiService.getMembroId(id));
+    public MembroExternalDto getMembroById(@PathVariable String id) {
+        MembroExternalDto membro = externalApiService.getMembroId(id);
+        return membro;
     }
 }

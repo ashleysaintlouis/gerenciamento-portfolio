@@ -42,29 +42,6 @@ public class CustomInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws JsonProcessingException {
-        List<MembroExternalDto> membrosParaCriar = List.of(
-                new MembroExternalDto(100L, "Ashley", "Funcionario"),
-                new MembroExternalDto(101L, "Jean", "Funcionario"),
-                new MembroExternalDto(102L, "EXV", "Funcionario"),
-                new MembroExternalDto(103L, "Ashley", "Gerente"),
-                new MembroExternalDto(104L, "Jean", "Gerente"),
-                new MembroExternalDto(105L, "EXV", "Gerente")
-        );
-
-        membrosParaCriar.forEach(dto -> {
-            MembroResponseDto salvo = membroService.criarMembro(dto);
-            System.out.println("Membro criado: " + salvo.nome() + " | Cargo: " + salvo.cargo());
-        });
-
-        List<Membro> membrosSalvos = membroRepository.findAll();
-        membrosSalvos.forEach(m -> System.out.println("Verificado no DB: " + m.getId() + " - " + m.getNome() + " | " + m.getCargo()));
-
-        Membro membroReferencia = membrosSalvos.stream()
-                .filter(m -> "Funcionario".equalsIgnoreCase(m.getCargo()))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Nenhum membro com cargo 'Funcionario' encontrado"));
-
-        MembroDto membroDto = membroMapper.toMembroDto(membroReferencia);
 
         ProjetoRequestDto projetoRequestDto = new ProjetoRequestDto(
                 "Portfolio",
@@ -72,17 +49,12 @@ public class CustomInitializer implements ApplicationRunner {
                 LocalDate.of(2025, 2, 11),
                 BigDecimal.valueOf(100.00),
                 "Portfolio para projeto empresa",
-                membroDto.id(),
+                2L,
                 StatusProjeto.EM_ANALISE
         );
 
         Long projetoId = projetoService.salvarProjeto(projetoRequestDto).id();
         System.out.println("Projeto criado com sucesso: " + projetoRequestDto);
 
-        membrosSalvos.stream()
-                .filter(m -> "Funcionario".equalsIgnoreCase(m.getCargo()))
-                .forEach(m -> projetoService.adicionarMembroAoProjeto(m.getId(), projetoId));
-
-        System.out.println("Todos os membros com cargo 'Funcionario' foram adicionados ao projeto.");
     }
 }

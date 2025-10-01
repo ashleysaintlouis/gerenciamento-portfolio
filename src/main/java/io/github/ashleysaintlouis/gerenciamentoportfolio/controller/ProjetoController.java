@@ -56,11 +56,10 @@ public class ProjetoController {
 
     @PatchMapping("/{id}/status")
     @Operation(summary = "Atualiza o status de um projeto")
-    public ResponseEntity<Void> atualizarStatus(
+    public ResponseEntity<AtualizarStatusDto> atualizarStatus(
             @PathVariable Long id,
             @RequestBody @Valid AtualizarStatusDto dto) {
-        projetoService.atualizarStatusProjeto(id, dto);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(projetoService.atualizarStatusProjeto(id, dto));
     }
 
     @PostMapping("/{projetoId}/membros/{membroId}")
@@ -79,9 +78,5 @@ public class ProjetoController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/relatorio")
-    @Operation(summary = "Gera um relatório resumido do portfólio")
-    public ResponseEntity<RelatorioPortfolioDto> gerarRelatorio() {
-        return ResponseEntity.ok(projetoService.gerarRelatorioPortfolio());
-    }
+
 }

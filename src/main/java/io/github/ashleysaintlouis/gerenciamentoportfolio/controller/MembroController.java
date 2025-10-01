@@ -2,7 +2,6 @@ package io.github.ashleysaintlouis.gerenciamentoportfolio.controller;
 
 
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroExternalDto;
-import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroRequestDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.membro.MembroResponseDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.service.MembroService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,12 +11,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/membros")
 public class MembroController {
     @Autowired
     private MembroService membroService;
-
 
     @PostMapping
     @Operation(summary = "Criar membro",
@@ -48,6 +48,12 @@ public class MembroController {
             })
     public ResponseEntity<MembroResponseDto> buscarMembroPorNome(@PathVariable String nome) {
         return ResponseEntity.ok(membroService.buscarMembroPorNome(nome));
+    }
+
+    @GetMapping
+    @Operation(summary = "Lista todos os membros interno com filtros e paginação")
+    public ResponseEntity<List<MembroResponseDto>> listarMembros() {
+        return ResponseEntity.ok(membroService.listarMembros());
     }
 
 }

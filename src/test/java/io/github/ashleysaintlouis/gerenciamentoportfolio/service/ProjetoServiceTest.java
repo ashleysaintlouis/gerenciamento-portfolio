@@ -89,7 +89,7 @@ class ProjetoServiceTest {
             projeto.getMembros().add(new Membro());
         }
         when(projetoRepository.findById(1L)).thenReturn(Optional.of(projeto));
-        when(membroService.eFuncionario(1L)).thenReturn(membro);
+        when(membroService.eFuncionario("funcionario")).thenReturn(true);
 
         assertThrows(BusinessException.class, () -> projetoService.adicionarMembroAoProjeto(1L, 1L));
     }

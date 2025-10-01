@@ -1,5 +1,6 @@
 package io.github.ashleysaintlouis.gerenciamentoportfolio.mapper;
 
+import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto.AtualizarStatusDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto.ProjetoRequestDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.dto.projeto.ProjetoResponseDto;
 import io.github.ashleysaintlouis.gerenciamentoportfolio.model.Projeto;
@@ -15,4 +16,7 @@ public interface ProjetoMapper {
 
     @Mapping(target = "classificacao", source = "classificacao")
     ProjetoResponseDto toResponseDto(Projeto projeto, TipoClassificacao classificacao);
+
+    AtualizarStatusDto toAtualizarStatusDto(Projeto projeto);
+
 }
