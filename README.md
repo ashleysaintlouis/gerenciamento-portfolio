@@ -6,6 +6,8 @@ Avaliação - Java 2.0
 
 Link API Swagger: http://localhost:8083/swagger-ui/index.html
 
+Link de Postman: https://www.postman.com/api111-2847/workspace/gerenciamento-portfolio/collection/43910742-a3e6b34d-ce38-49e9-affd-a2b4613ae873?action=share&source=copy-link&creator=43910742
+
 🧩 Contexto:
 
 Você deve desenvolver um sistema para gerenciar o portfólio de projetos de uma empresa. Esse sistema deverá permitir o acompanhamento completo do ciclo de vida de cada projeto, desde a análise de viabilidade até a finalização, incluindo gerenciamento de equipe, orçamento e risco.
@@ -57,6 +59,7 @@ Você deve desenvolver um sistema para gerenciar o portfólio de projetos de uma
 * O projeto deverá ser enviado por e-mail contendo o link para o repositório em sua conta pessoal no GitHub.
 
 Desejo boa sorte!
+
 
 
 
