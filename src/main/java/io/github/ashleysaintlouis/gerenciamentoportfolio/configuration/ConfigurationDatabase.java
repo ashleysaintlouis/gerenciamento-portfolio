@@ -35,4 +35,5 @@ public class ConfigurationDatabase {
 
         return new HikariDataSource(config);
     }
+
 }
